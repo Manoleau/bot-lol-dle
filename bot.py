@@ -9,7 +9,10 @@ import sqlite3
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 
+
+
 versions = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()
+
 class League:
     ""
     def __init__(self) -> None:
@@ -34,7 +37,137 @@ class Champion:
         self.id = info_champion["key"]
         self.image = f"https://ddragon.leagueoflegends.com/cdn/{info_champion['version']}/img/champion/{info_champion['image']['full']}"
 
-league = League()
+conn = sqlite3.connect('DB/LeagueDle.db')
+cursor = conn.cursor()
+select_query = "SELECT * FROM versions WHERE version = ?;"
+cursor.execute(select_query, (versions[0],))
+res = cursor.fetchone()[0]
+if not res:
+    ## vide les table
+    league = League()
+    delete_query = "DELETE FROM items"
+    cursor.execute(delete_query)
+    delete_query = "DELETE FROM champions"
+    cursor.execute(delete_query)
+
+    conn.commit()
+
+    insert_query = "INSERT INTO versions (version) VALUES (?)"
+    cursor.execute(insert_query, (versions[0],))
+
+    for champion in league.champions:
+        insert_query = "INSERT INTO champions (id, name, image) VALUES (?, ?, ?)"
+        cursor.execute(insert_query, (league.champions[champion].id, league.champions[champion].name, league.champions[champion].image))
+    for item in league.items:
+        insert_query = "INSERT INTO items (id, name, image) VALUES (?, ?, ?)"
+        cursor.execute(insert_query, (league.items[item].id, league.items[item].name, league.items[item].image))
+    conn.commit()
+
+conn.close()
+
+
+def get_champion_image_by_id(idChampion:int) -> str:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT image FROM champions WHERE id = ?;"
+    cursor.execute(select_query, (idChampion,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+def get_champion_image_by_name(nameChampion:str) -> str:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT image FROM champions WHERE name = ?;"
+    cursor.execute(select_query, (nameChampion,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+def get_champion_id_by_name(nameChampion:str) -> int:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT id FROM champions WHERE name = ?;"
+    cursor.execute(select_query, (nameChampion,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+def get_champion_name_by_id(idChampion:int) -> str:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT name FROM champions WHERE id = ?;"
+    cursor.execute(select_query, (idChampion,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+
+def get_item_image_by_id(idItem:int) -> str:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT image FROM items WHERE id = ?;"
+    cursor.execute(select_query, (idItem,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+def get_item_image_by_name(nameItem:str) -> str:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT image FROM items WHERE name = ?;"
+    cursor.execute(select_query, (nameItem,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+def get_item_id_by_name(nameItem:str) -> int:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT id FROM items WHERE name = ?;"
+    cursor.execute(select_query, (nameItem,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+def get_item_name_by_id(idItem:int) -> str:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    select_query = "SELECT name FROM items WHERE id = ?;"
+    cursor.execute(select_query, (idItem,))
+    res = cursor.fetchone()[0]
+    conn.close()
+    return res
+
+
+def get_random_champion() -> dict:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM champions ORDER BY RANDOM() LIMIT 1;")
+    res = cursor.fetchone()
+    conn.close()
+    return {
+        "id":res[0],
+        "name":res[1],
+        "image":res[2]
+    }
+
+def get_all_champions_in_list() -> list:
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM champions")
+    champions = cursor.fetchall()
+    conn.close()
+    return [
+        {
+            "id":champion[0],
+            "name":champion[1],
+            "image":champion[2]
+        }
+        for champion in champions
+    ]
+
+    
 
 @bot.event
 async def on_ready():
@@ -47,54 +180,19 @@ async def on_ready():
 
 
 @bot.tree.command(name="play", description="Jouer au jeu")
-async def play(interaction: discord.Interaction):
+@app_commands.describe(difficulte = "Quelle difficulté ?")
+@app_commands.choices(difficulte=[
+    discord.app_commands.Choice(name="Facile", value="facile"),
+    discord.app_commands.Choice(name="Difficile", value="difficile")
+])
+async def play(interaction: discord.Interaction, difficulte: discord.app_commands.Choice[str]):
     await interaction.response.defer()
-    await interaction.followup.send("oui")
+    champion = get_random_champion()
+    if difficulte.value == "facile":
+        champions = get_all_champions_in_list()
+    else:
+        ""
+    await interaction.followup.send(champion["image"])
 
-@bot.tree.command(name="download-image", description="telecharge image")
-async def downloadimage(interaction: discord.Interaction):
-    await interaction.response.defer()
-    conn = sqlite3.connect('DB/LeagueDle.db')
-    cursor = conn.cursor()
-    conn.commit()
-    conn.close()
-    await interaction.followup.send("oui")
-
-
-
-@bot.tree.command(name="inserer-dans-db", description="Insere dans la db les images")
-async def insererdansdb(interaction: discord.Interaction):
-    await interaction.response.defer()
-    conn = sqlite3.connect('DB/LeagueDle.db')
-    cursor = conn.cursor()
-    # cursor.execute("""
-    # CREATE TABLE IF NOT EXISTS versions(
-    #     version VARCHAR(255) PRIMARY KEY
-    # );
-    # """)
-    # for version in league.versions:
-    #     insert_query = "INSERT INTO versions (version) VALUES (?)"
-    #     cursor.execute(insert_query, (version,))
-    # cursor.execute("""
-    # CREATE TABLE IF NOT EXISTS champions(
-    #     id NUMBER PRIMARY KEY,
-    #     name VARCHAR(255),
-    #     image VARCHAR(255)
-    # );
-    # """)
-    
-    # delete_query = "DELETE FROM items"
-    # cursor.execute(delete_query)
-    # delete_query = "DELETE FROM champions"
-    # cursor.execute(delete_query)
-    # for champion in league.champions:
-    #     insert_query = "INSERT INTO champions (id, name, image) VALUES (?, ?, ?)"
-    #     cursor.execute(insert_query, (league.champions[champion].id, league.champions[champion].name, league.champions[champion].image))
-    # for item in league.items:
-    #     insert_query = "INSERT INTO items (id, name, image) VALUES (?, ?, ?)"
-    #     cursor.execute(insert_query, (league.items[item].id, league.items[item].name, league.items[item].image))
-    conn.commit()
-    conn.close()
-    await interaction.followup.send("oui")
 
 bot.run("MTE1OTA0NTA5MDUzMTA5MDUxNA.G_UKht.r5v82l70L_rKUrJ4iX0PXOeV5Dwh6ov0s648hI")
