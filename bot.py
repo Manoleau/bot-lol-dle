@@ -188,11 +188,26 @@ async def on_ready():
 async def play(interaction: discord.Interaction, difficulte: discord.app_commands.Choice[str]):
     await interaction.response.defer()
     champion = get_random_champion()
+    channelId = str(interaction.channel_id)
+    guildId = str(interaction.guild_id)
+    typeJeu = "champion"
+    mot = champion["name"]
+
+    conn = sqlite3.connect('DB/LeagueDle.db')
+    cursor = conn.cursor()
+    insert_query = "INSERT INTO Jeu (channelId, guildId, typeJeu, mot) VALUES (?, ?, ?, ?);"
+    #cursor.execute(insert_query, (channelId, guildId, typeJeu, mot))
+    #conn.commit()
+    conn.close()
+
+    embed = discord.Embed()
+    embed.set_image(url=champion["image"])
+    
     if difficulte.value == "facile":
         champions = get_all_champions_in_list()
     else:
         ""
-    await interaction.followup.send(champion["image"])
+    await interaction.followup.send(embed=embed)
 
 
 bot.run("MTE1OTA0NTA5MDUzMTA5MDUxNA.G_UKht.r5v82l70L_rKUrJ4iX0PXOeV5Dwh6ov0s648hI")
