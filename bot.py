@@ -2,19 +2,19 @@ import discord
 from discord.ext import commands
 from discord.ui import Select, View, Button
 from discord import app_commands
-import aiohttp
+
 import requests
-import asyncio
-import random
 import re
-import time
 from unidecode import unidecode
-import unicodedata
 
-import sqlite3
-conn = sqlite3.connect('DB/LeagueDle.db')
-cursor = conn.cursor()
+from Boutton.RejouerItemChampionBoutton import Rejouer
 
+from data_base import DB
+
+# asyncio
+# aiohttp
+# re
+# requests
 # bs4
 # lxml
 # unidecode
@@ -24,6 +24,7 @@ bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 liste_serveur_emoji_id = [1154032237122158602, 1159513438310125698, 1159514828772229241, 1159514864616734760, 1159514890743054417, 1159514914491215963, 1159514941473165322, 1159514967905673279, 1159516097444323448]
 
 versions = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()
+D = DB(versions[0])
 
 assets = {
     "LoL" : {
@@ -71,367 +72,18 @@ class Champion:
 
         self.splash_art = f"http://ddragon.leagueoflegends.com/cdn/img/champion/splash/{info_champion['id']}_0.jpg"
 
-
-# select_query = "SELECT * FROM versions WHERE version = ?;"
-# cursor.execute(select_query, (versions[0],))
-# res = cursor.fetchone()[0]
-# if not res:
-#     ## vide les table
-#     league = League()
-#     delete_query = "DELETE FROM items"
-#     cursor.execute(delete_query)
-#     delete_query = "DELETE FROM champions"
-#     cursor.execute(delete_query)
-
-#     conn.commit()
-
-#     for champion in league.champions:
-#         insert_query = "INSERT INTO champions (id, name, image, title, splash_art) VALUES (?, ?, ?, ?, ?);"
-#         cursor.execute(insert_query, (league.champions[champion].id, league.champions[champion].name, league.champions[champion].image, league.champions[champion].title, league.champions[champion].splash_art))
-#     for item in league.items:
-#         insert_query = "INSERT INTO items (id, name, image, description) VALUES (?, ?, ?, ?)"
-#         cursor.execute(insert_query, (league.items[item].id, league.items[item].name, league.items[item].image, league.items[item].description))
-
-#     conn.commit()
-
-
-def get_champion_image_by_id(idChampion:int) -> str:
-    select_query = "SELECT image FROM champions WHERE id = ?;"
-    cursor.execute(select_query, (idChampion,))
-    res = cursor.fetchone()[0]
-    return res
-def get_champion_image_by_name(nameChampion:str) -> str:
-    select_query = "SELECT image FROM champions WHERE name = ?;"
-    cursor.execute(select_query, (nameChampion,))
-    res = cursor.fetchone()[0]
-    return res
-def get_champion_id_by_name(nameChampion:str) -> int:
-    select_query = "SELECT id FROM champions WHERE name = ?;"
-    cursor.execute(select_query, (nameChampion,))
-    res = cursor.fetchone()[0]
-    return res
-def get_champion_name_by_id(idChampion:int) -> str:
-    select_query = "SELECT name FROM champions WHERE id = ?;"
-    cursor.execute(select_query, (idChampion,))
-    res = cursor.fetchone()[0]
-    return res
-def get_champion_splash_by_name(nameChampion:str) -> str:
-    select_query = "SELECT splash_art FROM champions WHERE name = ?;"
-    cursor.execute(select_query, (nameChampion,))
-    res = cursor.fetchone()[0]
-    return res
-def get_champion_splash_by_id(idChampion:int) -> str:
-    select_query = "SELECT splash_art FROM champions WHERE id = ?;"
-    cursor.execute(select_query, (idChampion,))
-    res = cursor.fetchone()[0]
-    return res
-def get_champion_by_name(nameChampion:str) -> dict:
-    select_query = "SELECT * FROM champions WHERE name = ?;"
-    cursor.execute(select_query, (nameChampion,))
-    res = cursor.fetchone()[0]
-    return {
-        "id":res[0],
-        "name":res[1],
-        "image":res[2],
-        "title":res[3],
-        "splash_art":res[4],
-    }
-def get_champion_by_id(idChampion:int) -> dict:
-    select_query = "SELECT * FROM champions WHERE id = ?;"
-    cursor.execute(select_query, (idChampion,))
-    res = cursor.fetchone()[0]
-    return {
-        "id":res[0],
-        "name":res[1],
-        "image":res[2],
-        "title":res[3],
-        "splash_art":res[4],
-    }
-def get_random_champion() -> dict:
-    cursor.execute("SELECT * FROM champions ORDER BY RANDOM() LIMIT 1;")
-    res = cursor.fetchone()
-    return {
-        "id":res[0],
-        "name":res[1],
-        "image":res[2],
-        "description": res[3]
-    }
-def get_all_champions_in_list() -> list:
-    cursor.execute("SELECT * FROM champions")
-    champions = cursor.fetchall()
-    return [
-        {
-            "id":champion[0],
-            "name":champion[1],
-            "image":champion[2],
-            "description": champion[3],
-            "splash_art":champion[4]
-        }
-        for champion in champions
-    ]
-
-
-def get_item_image_by_id(idItem:int) -> str:
-    select_query = "SELECT image FROM items WHERE id = ?;"
-    cursor.execute(select_query, (idItem,))
-    res = cursor.fetchone()
-    if res:
-        return res[0]
-    return None
-def get_item_image_by_name(nameItem:str) -> str:
-    select_query = "SELECT image FROM items WHERE name = ?;"
-    cursor.execute(select_query, (nameItem,))
-    res = cursor.fetchone()
-    if res:
-        return res[0]
-    return None
-def get_item_id_by_name(nameItem:str) -> int:
-    select_query = "SELECT id FROM items WHERE name = ?;"
-    cursor.execute(select_query, (nameItem,))
-    res = cursor.fetchone()
-    if res:
-        return res[0]
-    return None
-def get_item_name_by_id(idItem:int) -> str:
-    select_query = "SELECT name FROM items WHERE id = ?;"
-    cursor.execute(select_query, (idItem,))
-    res = cursor.fetchone()
-    if res:
-        return res[0]
-    return None
-def get_random_item() -> dict:
-    cursor.execute("SELECT * FROM items WHERE description != '' ORDER BY RANDOM() LIMIT 1;")
-    res = cursor.fetchone()
-    return {
-        "id":res[0],
-        "name":res[1],
-        "image":res[2],
-        "description": res[3]
-    }
-def get_item_by_id(idItem:int) -> dict:
-    select_query = "SELECT * FROM items WHERE id = ? AND description != '';"
-    cursor.execute(select_query, (idItem,))
-    res = cursor.fetchone()
-    if res:
-        return {
-            "id":res[0],
-            "name":res[1],
-            "image":res[2],
-            "description":res[3]
-        }
-    return None
-def get_item_by_name(nameItem:str) -> dict:
-    select_query = "SELECT * FROM items WHERE name = ? AND description != '';"
-    cursor.execute(select_query, (nameItem,))
-    res = cursor.fetchone()
-    if res:
-        return {
-            "id":res[0],
-            "name":res[1],
-            "image":res[2],
-            "description":res[3]
-        }
-    return None
-def get_all_items_in_list() -> list:
-    cursor.execute("SELECT * FROM items WHERE description != '' ORDER BY name ASC;")
-    items = cursor.fetchall()
-    return [
-        {
-            "id":item[0],
-            "name":item[1],
-            "image":item[2],
-            "description": item[3]
-        }
-        for item in items
-    ]
-
-
-def get_tous_infos()->list:
-    select_query = "SELECT * FROM champions;"
-    cursor.execute(select_query)
-
-    res_champs = cursor.fetchall()
-    liste_champions = [
-        {
-            "id":champ[0],
-            "name":champ[1],
-            "image":champ[2],
-            "title":champ[3],
-            "splash_art":champ[4],
-        }
-        for champ in res_champs
-    ]
-
-    select_query = "SELECT * FROM items WHERE description != '';"
-    cursor.execute(select_query)
-    res_items = cursor.fetchall()
-
-    liste_items = [
-        {
-            "id":item[0],
-            "name":item[1],
-            "image":item[2],
-            "description":item[3],
-        }
-        for item in res_items
-    ]
-    return liste_champions + liste_items
-
-def get_emoji(idThing:str) -> dict:
-    select_query = "SELECT * FROM Emojis WHERE id_thing = ?;"
-    cursor.execute(select_query, (idThing,))
-    res = cursor.fetchone()
-    return {
-        "id":res[0],
-        "nom_emoji":res[1],
-        "id_thing":res[2]
-    }
-async def update_emoji():
-
-    tous_infos = get_tous_infos()
-
-    liste_serveur_emoji = [bot.get_guild(id_serv) for id_serv in liste_serveur_emoji_id]
-
-    compteur = 0
-
-    for i in range(0, len(liste_serveur_emoji)):
-        serveur = liste_serveur_emoji[i]
-        for j in range(50):
-            if compteur >= len(tous_infos):
-                break
-            try:
-                info = tous_infos[compteur]
-                id_info = info["id"]
-                name_info_for_emote = info["name"].replace("'","").replace(" ", "").replace(".","").replace("-","").replace("œ","oe").replace(",","")
-                name_info_for_emote = unidecode(name_info_for_emote)
-
-                emoji = await ajout_emote(serveur, name_info_for_emote, info["image"])
-                
-                insert_query = "INSERT INTO Emojis (id, nom_emoji, id_thing) VALUES(?, ?, ?)"
-                cursor.execute(insert_query, (str(emoji.id), name_info_for_emote, str(id_info)))
-                conn.commit()
-                compteur += 1
-                time.sleep(1.5)
-            except:
-                print("erreur")
-
-def get_embed_indice(liste_lettre:list)->discord.Embed:
-    embed = discord.Embed()
-    mot = "`"
-    for lettre in liste_lettre:
-        mot+=lettre
-    mot += "`"
-    embed.description = ":bulb: **Indice** "+mot
-    return embed
-
-
-def get_joueur_by_id(idJoueur:str) -> dict:
-    query = "SELECT * FROM Joueur WHERE id = ?;"
-    cursor.execute(query, (idJoueur,))
-    res = cursor.fetchone()
-    if res:
-        return {
-            "id":res[0],
-            "name":res[1],
-            "avatar_url":res[2]
-        }
-    return None
-
-def get_joueur_by_name(nomJoueur:str) -> dict:
-    query = "SELECT * FROM Joueur WHERE name = ?;"
-    cursor.execute(query, (nomJoueur,))
-    res = cursor.fetchone()
-    if res:
-        return {
-            "id":res[0],
-            "name":res[1],
-            "avatar_url":res[2]
-        }
-    return None
-
-def insert_joueur_in_db(idJoueur:str, nomJoueur:str, avatarUrl:str):
-    query = "INSERT INTO Joueur (id, name, avatar_url) VALUES (?, ?, ?);"
-    cursor.execute(query, (idJoueur,nomJoueur,avatarUrl))
-    conn.commit()
-
-
-
-def update_jeu_gagnant(idGame:int, idGagnant:str):
-    update_query = "UPDATE Jeu SET idGagnant = ? WHERE id = ?;"
-    cursor.execute(update_query, (idGagnant, idGame))
-    conn.commit()
-
-async def timer_indice(interaction:discord.Interaction, channelId : str, guildId:str, mot:str):
-    liste_lettre = []
-    liste_pos_lettre = []
-    for lettre in mot:
-        if lettre == " ":
-            liste_pos_lettre.append(True)
-            liste_lettre.append(" ")
-        elif lettre == "-":
-            liste_pos_lettre.append(True)
-            liste_lettre.append("-")
-        elif lettre == ".":
-            liste_pos_lettre.append(True)
-            liste_lettre.append(".")
-        elif lettre == ",":
-            liste_pos_lettre.append(True)
-            liste_lettre.append(",")
-        elif lettre == "'":
-            liste_pos_lettre.append(True)
-            liste_lettre.append("'")
-        else:
-            liste_pos_lettre.append(True)
-            liste_lettre.append("_")
-    
-    
-    
-    message_indice = await interaction.channel.send(embed=get_embed_indice(liste_lettre))
-    
-    update_query = "UPDATE Jeu SET message_indice_id = ? WHERE channelId = ? AND guildId = ?;"
-    cursor.execute(update_query, (str(message_indice.id),channelId, guildId))
-    conn.commit()
-    n = len(liste_lettre)
-    if n < 5:
-        secondint = 10
-    if n >= 5 and n < 10:
-        secondint = 25
-    elif n >= 10 and n <15:
-        secondint = 40
-    elif n >= 15 and n <20:
-        secondint = 55
-    elif n >= 20 and n <25:
-        secondint = 70
-    elif n >= 25 and n <30:
-        secondint = 85
-    elif n >= 30 and n <35:
-        secondint = 100
-    elif n >= 35 and n <40:
-        secondint = 115
-    elif n >= 40 and n <45:
-        secondint = 130
-    elif n >= 45 and n <50:
-        secondint = 145
-    elif n >= 50 and n <55:
-        secondint = 160
-    else:
-        secondint = 175
-    while True:
-        if secondint == 0:
-            break
-        try:
-            secondint = secondint - 1
-            if secondint % 5 == 0:
-                for i in range(1):
-                    pos = random.randint(0, n-1)
-                    while not liste_pos_lettre[pos]:
-                        pos = random.randint(0, n-1)
-                    liste_lettre[pos] = mot[pos]
-                    liste_pos_lettre[pos] = True
-                await message_indice.edit(embed=get_embed_indice(liste_lettre))
-        except:
-            break
-        await asyncio.sleep(1)
+if not D.has_version(versions[0]):
+    update = True
+    ## vide les table
+    league = League()
+    D.delete_all_champions()
+    D.delete_all_items()
+    for champion in league.champions:
+        D.add_champion(league.champions[champion].id, league.champions[champion].name, league.champions[champion].image, league.champions[champion].title, league.champions[champion].splash_art)
+    for item in league.items:
+        D.add_item(league.items[item].id, league.items[item].name, league.items[item].image, league.items[item].description)
+else: 
+    update = False
 
 def create_embed_missing_joueur(nomJoueur:str) -> discord.Embed:
     embed = discord.Embed()
@@ -442,6 +94,11 @@ def create_embed_missing_item(nomItem:str) -> discord.Embed:
     embed = discord.Embed()
     embed.color = discord.Color.red()
     embed.description = "**"+nomItem+"** n'existe pas !"
+    return embed
+def create_embed_missing_champion(nomChampion:str) -> discord.Embed:
+    embed = discord.Embed()
+    embed.color = discord.Color.red()
+    embed.description = "**"+nomChampion+"** n'existe pas !"
     return embed
 
 def compteur_victoire_un_joueur(liste_parties:list) -> dict:
@@ -487,7 +144,7 @@ def compteur_victoire_un_mode(liste_parties:list) -> dict:
     dict_joueurs = {}
     for partie in liste_parties:
         if partie[7] not in dict_joueurs:
-            dict_joueurs[partie[7]] = get_joueur_by_id(partie[7])
+            dict_joueurs[partie[7]] = D.get_joueur_by_id(partie[7])
             dict_joueurs[partie[7]]
         if partie[5] == "difficile":
             res["difficile"] = True
@@ -506,88 +163,17 @@ def trier_victoire(dict_victoire:dict):
     if "difficile" in dict_victoire["item"]:
         dict_victoire["item"]["difficile"] = dict(sorted(dict_victoire["item"]["difficile"].items(), key=lambda item: item[1], reverse=True))
 
-
 def has_accent(input_string):
     pattern = r'[À-ÖÙ-öÙ-ÿ]'
     return bool(re.search(pattern, input_string))
-
-async def ajout_emote(guild:discord.Guild,name:str, url:str):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as resp:
-            if resp.status == 200:
-                emoji_data = await resp.read()
-                emoji = await guild.create_custom_emoji(name=name, image=emoji_data)
-                return emoji
-            else:
-                return None
-
-class RejouerBoutton(View):
-    def __init__(self, mode:str, difficulte:str):
-        super().__init__()
-        self.mode = mode
-        self.difficulte = difficulte
-
-    @discord.ui.button(label="Rejouer", style=discord.ButtonStyle.green)
-    async def rejouerBtn(self, interaction:discord.Interaction, button:Button):
-        await interaction.response.defer()
-    
-        channelId = str(interaction.channel_id)
-        guildId = str(interaction.guild_id)
-        typeJeu = self.mode
-        
-        select_query = "SELECT * FROM Jeu WHERE channelId = ? AND guildId = ? AND idGagnant IS NULL;"
-        cursor.execute(select_query, (channelId, guildId))
-        res = cursor.fetchone()
-
-        embed = discord.Embed()
-        
-        if res is None:
-            embed.color = discord.Colour(0x425b8a)
-            embed.set_footer(text="Version : "+versions[0])
-            
-            insert_query = "INSERT INTO Jeu (channelId, guildId, typeJeu, mot, difficulte) VALUES (?, ?, ?, ?, ?);"
-
-            if self.difficulte == "facile":
-                if typeJeu == "champion":
-                    champion = get_random_champion()
-                    mot = champion["name"]
-                    cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, self.difficulte))
-                    conn.commit()
-                    embed.set_author(name="Qui est ce champion ?")
-                    embed.set_image(url=champion["image"])
-                elif typeJeu == "item":
-                    item = get_random_item()
-                    mot = item["name"]
-                    cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, self.difficulte))
-                    conn.commit()
-                    embed.description = "*nom de l'item complet uniquement*"
-                    embed.set_author(name="Quel est le nom de cet item ?")
-                    embed.set_image(url=item["image"])
-            else:
-                if typeJeu == "champion":
-                    champion = get_random_champion()
-                    mot = champion["name"]
-                    cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, self.difficulte))
-                    conn.commit()
-                    embed.add_field(name="Quel est le champion qui a ce titre ?", value="\u200b\n**"+champion["description"]+"**\n\u200b")
-                elif typeJeu == "item":
-                    item = get_random_item()
-                    mot = item["name"]
-                    cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, self.difficulte))
-                    conn.commit()
-                    embed.add_field(name="Quel est l'item qui correspond a cette description ?", value=item["description"])
-                        
-            await interaction.followup.send(embed=embed)
-            
-            await timer_indice(interaction=interaction, channelId=channelId, guildId=guildId, mot=mot)
-        else:
-            embed.description = "Une partie est déjà en cours..."
-            await interaction.followup.send(embed=embed)
 
 @bot.event
 async def on_ready():
     print('Le Bot '+bot.user.display_name+' Est Prêt !')
     try:
+        if update:
+            liste_serveur_emoji = [bot.get_guild(id_serv) for id_serv in liste_serveur_emoji_id]
+            await D.update_emoji(liste_serveur_emoji)
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} command(s)")
     except Exception as e:
@@ -595,7 +181,7 @@ async def on_ready():
 
 @bot.event
 async def on_disconnect():
-    conn.close()
+    D.conn.close()
     print(f"Le bot {bot.user.name} s'est déconnecté.")
 
 @bot.tree.command(name="play", description="Jouer au jeu")
@@ -616,9 +202,7 @@ async def play(interaction: discord.Interaction, mode: discord.app_commands.Choi
     guildId = str(interaction.guild_id)
     typeJeu = mode.value
     
-    select_query = "SELECT * FROM Jeu WHERE channelId = ? AND guildId = ? AND idGagnant IS NULL;"
-    cursor.execute(select_query, (channelId, guildId))
-    res = cursor.fetchone()
+    res = D.get_game_by_channel_and_guild(channelId, guildId, False)
 
     embed = discord.Embed()
     
@@ -627,42 +211,32 @@ async def play(interaction: discord.Interaction, mode: discord.app_commands.Choi
         logo_lol = discord.File(assets["LoL"]["image-location"], filename=assets["LoL"]["image"])
         embed.set_footer(text="Version : "+versions[0], icon_url="attachment://"+assets["LoL"]["image"])
         
-        insert_query = "INSERT INTO Jeu (channelId, guildId, typeJeu, mot, difficulte) VALUES (?, ?, ?, ?, ?);"
 
         if difficulte.value == "facile":
             if typeJeu == "champion":
-                champion = get_random_champion()
+                champion = D.get_random_champion()
                 mot = champion["name"]
-                cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, difficulte.value))
-                conn.commit()
                 embed.set_author(name="Qui est ce champion ?")
                 embed.set_image(url=champion["image"])
             elif typeJeu == "item":
-                item = get_random_item()
+                item = D.get_random_item()
                 mot = item["name"].replace("œ","oe")
-                cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, difficulte.value))
-                conn.commit()
                 embed.description = "*nom de l'item complet uniquement*"
                 embed.set_author(name="Quel est le nom de cet item ?")
                 embed.set_image(url=item["image"])
         else:
             if typeJeu == "champion":
-                champion = get_random_champion()
+                champion = D.get_random_champion()
                 mot = champion["name"]
-                cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, difficulte.value))
-                conn.commit()
                 embed.add_field(name="Quel est le champion qui a ce titre ?", value="\u200b\n**"+champion["description"]+"**\n\u200b")
             elif typeJeu == "item":
-                item = get_random_item()
+                item = D.get_random_item()
                 mot = item["name"].replace("œ","oe")
-                cursor.execute(insert_query, (channelId, guildId, typeJeu, mot, difficulte.value))
-                conn.commit()
                 embed.add_field(name="Quel est l'item qui correspond a cette description ?", value=item["description"])
+        D.add_game(channelId, guildId, typeJeu, mot, difficulte.value)
         await interaction.followup.send(embed=embed, file=logo_lol)
-        
-        await timer_indice(interaction=interaction, channelId=channelId, guildId=guildId, mot=mot)
-        
-        
+        gameId = D.get_game_id(channelId, guildId, False)
+        await D.timer_indice(interaction=interaction, gameId=gameId, typeJeu=typeJeu, channelId=channelId, guildId=guildId, mot=mot)
         
     else:
         embed.description = "Une partie est déjà en cours..."
@@ -684,12 +258,12 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
     logo_lol = discord.File(assets["LoL"]["image-location"], filename=assets["LoL"]["image"])
     embed.set_footer(text="Version : "+versions[0], icon_url="attachment://"+assets["LoL"]["image"])
     if joueur and mode:
-        joueur_info = get_joueur_by_name(joueur)
+        joueur_info = D.get_joueur_by_name(joueur)
         if joueur_info:
             embed.set_thumbnail(url=joueur_info["avatar_url"])
             embed.description = "Victoires de **"+joueur+"** dans la catégorie *"+mode.value+"*"
-            cursor.execute("SELECT * FROM Jeu WHERE idGagnant = ? AND typeJeu = ?;", (joueur_info["id"], mode.value))
-            res = cursor.fetchall()
+            D.cursor.execute("SELECT * FROM Jeu WHERE idGagnant = ? AND typeJeu = ?;", (joueur_info["id"], mode.value))
+            res = D.cursor.fetchall()
             compteurVictoire = compteur_victoire_un_joueur(res)[mode.value]
             if "facile" in compteurVictoire and "difficile" in compteurVictoire:
                 msg_mode_facile = ""
@@ -701,9 +275,9 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                     if compteur != 0:
                         if champion_item not in dict_emojis:
                             if mode.value == "champion":
-                                emoji = get_emoji(str(get_champion_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_champion_id_by_name(champion_item)))
                             elif mode.value == "item":
-                                emoji = get_emoji(str(get_item_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_item_id_by_name(champion_item)))
                             dict_emojis[champion_item] = emoji
                         msg_mode_facile += f"<:{dict_emojis[champion_item]['nom_emoji']}:{dict_emojis[champion_item]['id']}> {champion_item} : `{str(compteurVictoire['facile'][champion_item])}`\n"
                     compteur += 1
@@ -714,9 +288,9 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                     if compteur != 0:
                         if champion_item not in dict_emojis:
                             if mode.value == "champion":
-                                emoji = get_emoji(str(get_champion_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_champion_id_by_name(champion_item)))
                             elif mode.value == "item":
-                                emoji = get_emoji(str(get_item_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_item_id_by_name(champion_item)))
                             dict_emojis[champion_item] = emoji
                         msg_mode_difficile += f"<:{dict_emojis[champion_item]['nom_emoji']}:{dict_emojis[champion_item]['id']}> {champion_item} : `{str(compteurVictoire['difficile'][champion_item])}`\n"
                     compteur += 1
@@ -735,9 +309,9 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                     if compteur != 0:
                         if champion_item not in dict_emojis:
                             if mode.value == "champion":
-                                emoji = get_emoji(str(get_champion_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_champion_id_by_name(champion_item)))
                             elif mode.value == "item":
-                                emoji = get_emoji(str(get_item_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_item_id_by_name(champion_item)))
                             dict_emojis[champion_item] = emoji
                         msg_mode_facile += f"<:{dict_emojis[champion_item]['nom_emoji']}:{dict_emojis[champion_item]['id']}> {champion_item} : `{str(compteurVictoire['facile'][champion_item])}`\n"
                     compteur += 1
@@ -755,9 +329,9 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                     if compteur != 0:
                         if champion_item not in dict_emojis:
                             if mode.value == "champion":
-                                emoji = get_emoji(str(get_champion_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_champion_id_by_name(champion_item)))
                             elif mode.value == "item":
-                                emoji = get_emoji(str(get_item_id_by_name(champion_item)))
+                                emoji = D.get_emoji(str(D.get_item_id_by_name(champion_item)))
                             dict_emojis[champion_item] = emoji
                         msg_mode_difficile += f"<:{dict_emojis[champion_item]['nom_emoji']}:{dict_emojis[champion_item]['id']}> {champion_item} : `{str(compteurVictoire['difficile'][champion_item])}`\n"
                     compteur += 1
@@ -773,12 +347,12 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
             await interaction.followup.send(embed=embed)
             return
     elif joueur:
-        joueur_info = get_joueur_by_name(joueur)
+        joueur_info = D.get_joueur_by_name(joueur)
         if joueur_info:
             embed.description = "Victoires de **"+joueur+"** dans les catégories *champion* et *item*"
             embed.set_thumbnail(url=joueur_info["avatar_url"])
-            cursor.execute("SELECT * FROM Jeu WHERE idGagnant = ?;", (joueur_info["id"],))
-            res = cursor.fetchall()
+            D.cursor.execute("SELECT * FROM Jeu WHERE idGagnant = ?;", (joueur_info["id"],))
+            res = D.cursor.fetchall()
             compteurVictoire = compteur_victoire_un_joueur(res)
             if compteurVictoire["champion"]["total"] != 0:
                 msg_champ_totaux = "Totaux : `" + str(compteurVictoire["champion"]["total"]) + "`\n"
@@ -791,7 +365,7 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                             break
                         if compteur != 0:
                             if champion not in dict_emojis:
-                                emoji = get_emoji(str(get_champion_id_by_name(champion)))
+                                emoji = D.get_emoji(str(D.get_champion_id_by_name(champion)))
                                 dict_emojis[champion] = emoji
                             msg_champ_facile += f"<:{dict_emojis[champion]['nom_emoji']}:{dict_emojis[champion]['id']}> {champion} : `{str(compteurVictoire['champion']['facile'][champion])}`\n"
                         compteur += 1
@@ -807,7 +381,7 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                             break
                         if compteur != 0:
                             if champion not in dict_emojis:
-                                emoji = get_emoji(str(get_champion_id_by_name(champion)))
+                                emoji = D.get_emoji(str(D.get_champion_id_by_name(champion)))
                                 dict_emojis[champion] = emoji
                             msg_champ_difficile += f"<:{dict_emojis[champion]['nom_emoji']}:{dict_emojis[champion]['id']}> {champion} : `{str(compteurVictoire['champion']['difficile'][champion])}`\n"
                         compteur += 1
@@ -832,7 +406,7 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                             break
                         if compteur != 0:
                             if item not in dict_emojis:
-                                emoji = get_emoji(str(get_item_id_by_name(item)))
+                                emoji = D.get_emoji(str(D.get_item_id_by_name(item)))
                                 dict_emojis[item] = emoji
                             msg_item_facile += f"<:{dict_emojis[item]['nom_emoji']}:{dict_emojis[item]['id']}> {item} : `{str(compteurVictoire['item']['facile'][item])}`\n"
                         compteur += 1
@@ -848,7 +422,7 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                             break
                         if compteur != 0:
                             if item not in dict_emojis:
-                                emoji = get_emoji(str(get_item_id_by_name(item)))
+                                emoji = D.get_emoji(str(D.get_item_id_by_name(item)))
                                 dict_emojis[item] = emoji
                             msg_item_difficile += f"<:{dict_emojis[item]['nom_emoji']}:{dict_emojis[item]['id']}> {item} : `{str(compteurVictoire['item']['difficile'][item])}`\n"
                         compteur += 1
@@ -869,18 +443,18 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
     elif mode:
         embed.description = "Victoires dans les catégories *"+mode.value+"*"
 
-        cursor.execute("SELECT * FROM Jeu WHERE typeJeu = ? AND idGagnant IS NOT NULL;", (mode.value,))
-        compteurVictoire = compteur_victoire_un_mode(cursor.fetchall())
+        D.cursor.execute("SELECT * FROM Jeu WHERE typeJeu = ? AND idGagnant IS NOT NULL;", (mode.value,))
+        compteurVictoire = compteur_victoire_un_mode(D.cursor.fetchall())
 
-        cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
-        classement_total_joueurs = cursor.fetchall()
+        D.cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
+        classement_total_joueurs = D.cursor.fetchall()
 
         dict_joueurs = compteurVictoire["joueurs"]
         if compteurVictoire["facile"] and compteurVictoire["difficile"]:
-            cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'facile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
-            classement_facile_joueurs = cursor.fetchall()
-            cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'difficile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
-            classement_difficile_joueurs = cursor.fetchall()
+            D.cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'facile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
+            classement_facile_joueurs = D.cursor.fetchall()
+            D.cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'difficile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
+            classement_difficile_joueurs = D.cursor.fetchall()
             ##
             compteur = 1
             msg_classement_total = ""
@@ -917,14 +491,12 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
                 compteur += 1
             embed.add_field(name="Classement Difficile", value=msg_classement_difficile)
         elif "facile" in compteurVictoire["parties"]:
-            parties_facile = compteurVictoire["parties"]["facile"]
-            cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'facile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
-            classement_facile_joueurs = cursor.fetchall()
+            D.cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'facile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
+            classement_facile_joueurs = D.cursor.fetchall()
         elif "difficile" in compteurVictoire["parties"]:
-            parties_difficile = compteurVictoire["parties"]["difficile"]
             
-            cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'difficile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
-            classement_difficile_joueurs = cursor.fetchall()
+            D.cursor.execute("SELECT idGagnant, COUNT(idGagnant) AS nombre_victoires FROM Jeu WHERE idGagnant IS NOT NULL AND typeJeu = ? AND difficulte = 'difficile' GROUP BY idGagnant ORDER BY nombre_victoires DESC;", (mode.value,))
+            classement_difficile_joueurs = D.cursor.fetchall()
         else:
             embed.add_field(name="Totaux", value="`0`")
      
@@ -937,80 +509,99 @@ async def classement(interaction: discord.Interaction, joueur: str = None, mode:
           
     await interaction.followup.send(embed=embed, file=logo_lol, ephemeral=True)
 
-# @bot.tree.command(name="updateemote", description="updateemote")
-# async def updateemote(interaction: discord.Interaction):
-#     await interaction.response.defer()
-#     update_emoji2()
-#     await interaction.followup.send("fini")
-
 @bot.tree.command(name="items", description="Affiche tous les items, si un item est séléctionné alors on affiche les stats")
 @app_commands.describe(item = "Nom de l'item")
-async def items(interaction: discord.Interaction, item: str = None):
+@app_commands.describe(lettre = "Une lettre")
+async def items(interaction: discord.Interaction, item: str = None, lettre:str = None):
     await interaction.response.defer()
     embed = discord.Embed()
     if item:
-        item_info = get_item_by_name(item)
+        item_info = D.get_item_by_name(item)
         if item_info:
+            logo_lol = discord.File(assets["LoL"]["image-location"], filename=assets["LoL"]["image"])
+            embed.set_footer(text="Version : "+versions[0], icon_url="attachment://"+assets["LoL"]["image"])
             embed.set_thumbnail(url=item_info["image"])
             embed.set_author(name=item)
             embed.add_field(name="Description/Stats", value=item_info["description"],inline=False)
+            await interaction.followup.send(embed=embed, file=logo_lol)
         else:
             embed = create_embed_missing_item(item)
-        await interaction.followup.send(embed=embed)
-            
+            lettre = item[0].upper()
+            embed.description += "\nFaites /items lettre: "+lettre
+            await interaction.followup.send(embed=embed)            
+    elif lettre:
+        lettre = lettre.upper()
+        items_info = D.get_all_items_in_list_start_with(lettre)
+        if items_info:
+            logo_lol = discord.File(assets["LoL"]["image-location"], filename=assets["LoL"]["image"])
+            embed.set_footer(text="Version : "+versions[0], icon_url="attachment://"+assets["LoL"]["image"])
+            embed.set_author(name="Items commençant par "+lettre)
+            msg = ""
+            nb_lettres = 0
+            for item_info in items_info:
+                emoji = D.get_emoji(str(item_info["id"]))
+                tmp = f"<:{emoji['nom_emoji']}:{emoji['id']}> {item_info['name']}\n"
+                msg += tmp
+                nb_lettres += len(tmp)
+                if nb_lettres >= 950:
+                    nb_lettres = 0
+                    embed.add_field(name="\u200b", value=msg)
+                    msg = ""
+            if msg != "":
+                embed.add_field(name="\u200b", value=msg)
+            await interaction.followup.send(embed=embed, file=logo_lol)
+        else:
+            await interaction.followup.send("Veillez entrer une lettre correct !")
     else:
-        liste_embeds = []
-        items_info = get_all_items_in_list()
-        msg = ""
-        lettre = "A"
-        nb_lettres = 0
-        nb_lettres_embed = 0
-
-        
-        for item_info in items_info:
-            if unidecode(item_info["name"][0]).lower() != unidecode(lettre).lower():
-                if msg != "" and msg != "\n":
-                    embed.add_field(name=lettre, value=msg)
-                
-                msg = ""
-                lettre = item_info["name"][0]
-                nb_lettres = 0
-            emoji = get_emoji(str(item_info["id"]))
-            tmp = f"<:{emoji['nom_emoji']}:{emoji['id']}> {item_info['name']}\n"
-            msg += tmp
-            nb_lettres += len(tmp)
-            nb_lettres_embed += len(tmp)
-
-            if nb_lettres_embed >= 5900:
-                nb_lettres_embed = nb_lettres
-                liste_embeds.append(embed)
-                embed = discord.Embed()
-            if nb_lettres >= 950:
-                nb_lettres = 0
-                if nb_lettres_embed >= 5900:
-                    nb_lettres_embed = 0
-                    liste_embeds.append(embed)
-                    embed = discord.Embed()
-                
-                embed.add_field(name=lettre, value=msg)
-                msg = ""
-            
-        if msg != "":
-            embed.add_field(name=lettre, value=msg)
-        if embed not in liste_embeds:
-            liste_embeds.append(embed)
-            
-        for i in range(len(liste_embeds)):
-            if i == 0:
-                await interaction.followup.send(embed=liste_embeds[i])
-            else:
-                await interaction.channel.send(embed=liste_embeds[i])
-
+        await interaction.followup.send(content="Veillez entrer une lettre ou un nom d'item !")
+         
 @bot.tree.command(name="champions", description="Affiche tous les champions, si un item est séléctionné alors on affiche ")
-@app_commands.describe(champion = "Nom de l'item")
-async def champions(interaction: discord.Interaction, champion: str = None):
+@app_commands.describe(champion = "Nom du champion")
+@app_commands.describe(lettre = "Une lettre")
+async def champions(interaction: discord.Interaction, champion: str = None, lettre:str = None):
     await interaction.response.defer()
-    await interaction.followup.send("test")
+    embed = discord.Embed()
+    if champion:
+        champion_info = D.get_champion_by_name(champion)
+        if champion_info:
+            logo_lol = discord.File(assets["LoL"]["image-location"], filename=assets["LoL"]["image"])
+            embed.set_footer(text="Version : "+versions[0], icon_url="attachment://"+assets["LoL"]["image"])
+            embed.set_author(name=champion)
+            embed.set_thumbnail(url=champion_info["image"])
+            embed.description = champion_info["title"]
+            embed.set_image(url=champion_info["splash_art"])
+            await interaction.followup.send(embed=embed, file=logo_lol)
+        else:
+            embed = create_embed_missing_champion(champion)
+            lettre = champion[0].upper()
+            embed.description += "\nFaites /champions lettre: "+lettre
+            await interaction.followup.send(embed=embed)
+        
+    elif lettre:
+        lettre = lettre.upper()
+        champions_info = D.get_all_champions_in_list_start_with(lettre)
+        if champions_info:
+            logo_lol = discord.File(assets["LoL"]["image-location"], filename=assets["LoL"]["image"])
+            embed.set_footer(text="Version : "+versions[0], icon_url="attachment://"+assets["LoL"]["image"])
+            embed.set_author(name="Champions commençant par "+lettre)
+            msg = ""
+            nb_lettres = 0
+            for champion_info in champions_info:
+                emoji = D.get_emoji(str(champion_info["id"]))
+                tmp = f"<:{emoji['nom_emoji']}:{emoji['id']}> {champion_info['name']}\n"
+                msg += tmp
+                nb_lettres += len(tmp)
+                if nb_lettres >= 950:
+                    nb_lettres = 0
+                    embed.add_field(name="\u200b", value=msg)
+                    msg = ""
+            if msg != "":
+                embed.add_field(name="\u200b", value=msg)
+            await interaction.followup.send(embed=embed, file=logo_lol)
+        else:
+            await interaction.followup.send("Veillez entrer une lettre correct !")
+    else:
+        await interaction.followup.send("Veillez entrer une lettre ou un nom de champion !")
 
 @bot.event
 async def on_message(message: discord.Message):
@@ -1018,153 +609,131 @@ async def on_message(message: discord.Message):
         channelId = str(message.channel.id)
         guildId = str(message.guild.id)
         select_query = "SELECT * FROM Jeu WHERE channelId = ? AND guildId = ? AND idGagnant IS NULL;"
-        cursor.execute(select_query, (channelId, guildId))
-        res = cursor.fetchone()
+        D.cursor.execute(select_query, (channelId, guildId))
+        res = D.cursor.fetchone()
         if res is not None:
             if(res[3] == "champion"):
                 request = message.content.lower()
-                if request == "!stop":
+                liste_possibilite = []
+                nomChampion = res[4].lower()
+                accent = has_accent(nomChampion)
+                liste_possibilite.append(nomChampion)
+                if accent:
+                    liste_possibilite.append(unidecode(nomChampion))
+                if "'" in nomChampion:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomChampion.replace("'", "")))
+                        liste_possibilite.append(unidecode(nomChampion.replace("'", " ")))
+                    liste_possibilite.append(nomChampion.replace("'", ""))
+                    liste_possibilite.append(nomChampion.replace("'", " "))
+                if "." in nomChampion:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomChampion.replace(".", "")))
+                    liste_possibilite.append(nomChampion.replace(".", ""))
+                if " " in nomChampion:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomChampion.replace(" ", "")))
+                    liste_possibilite.append(nomChampion.replace(" ", ""))
+                if "." in nomChampion and " " in nomChampion:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomChampion.replace(".", "").replace(" ", "")))
+                    liste_possibilite.append(nomChampion.replace(".", "").replace(" ", ""))
+                if " " in nomChampion and "'" in nomChampion:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomChampion.replace("'", " ").replace(" ", "")))
+                        liste_possibilite.append(unidecode(nomChampion.replace("'", "").replace(" ", "")))
+                    liste_possibilite.append(nomChampion.replace("'", " ").replace(" ", ""))
+                    liste_possibilite.append(nomChampion.replace("'", "").replace(" ", ""))
+                if " " in nomChampion and "." in nomChampion and "'" in nomChampion:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomChampion.replace(" ", "").replace(".", "").replace("'", "")))
+                        liste_possibilite.append(unidecode(nomChampion.replace(" ", "").replace(".", "").replace("'", " ")))
+                    liste_possibilite.append(nomChampion.replace(" ", "").replace(".", "").replace("'", ""))
+                    liste_possibilite.append(nomChampion.replace(" ", "").replace(".", "").replace("'", " "))
+                if request in liste_possibilite:
+                    embed = discord.Embed()
                     message_indice = await message.channel.fetch_message(int(res[6]))
                     await message_indice.delete()
-                    cursor.execute("DELETE FROM Jeu WHERE id = ?;", (res[0],))
-                    conn.commit()
-                    embed = discord.Embed()
-                    embed.set_author(name="Fin de partie")
-                    embed.set_image(url=get_champion_splash_by_name(res[4]))
-                    embed.description = "Le champion était : "+res[4]
-                    await message.channel.send(embed=embed)
-                else:
-                    liste_possibilite = []
-                    nomChampion = res[4].lower()
-                    accent = has_accent(nomChampion)
-                    liste_possibilite.append(nomChampion)
-                    if accent:
-                        liste_possibilite.append(unidecode(nomChampion))
-                    if "'" in nomChampion:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomChampion.replace("'", "")))
-                            liste_possibilite.append(unidecode(nomChampion.replace("'", " ")))
-                        liste_possibilite.append(nomChampion.replace("'", ""))
-                        liste_possibilite.append(nomChampion.replace("'", " "))
-                    if "." in nomChampion:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomChampion.replace(".", "")))
-                        liste_possibilite.append(nomChampion.replace(".", ""))
-                    if " " in nomChampion:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomChampion.replace(" ", "")))
-                        liste_possibilite.append(nomChampion.replace(" ", ""))
-                    if "." in nomChampion and " " in nomChampion:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomChampion.replace(".", "").replace(" ", "")))
-                        liste_possibilite.append(nomChampion.replace(".", "").replace(" ", ""))
-                    if " " in nomChampion and "'" in nomChampion:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomChampion.replace("'", " ").replace(" ", "")))
-                            liste_possibilite.append(unidecode(nomChampion.replace("'", "").replace(" ", "")))
-                        liste_possibilite.append(nomChampion.replace("'", " ").replace(" ", ""))
-                        liste_possibilite.append(nomChampion.replace("'", "").replace(" ", ""))
-                    if " " in nomChampion and "." in nomChampion and "'" in nomChampion:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomChampion.replace(" ", "").replace(".", "").replace("'", "")))
-                            liste_possibilite.append(unidecode(nomChampion.replace(" ", "").replace(".", "").replace("'", " ")))
-                        liste_possibilite.append(nomChampion.replace(" ", "").replace(".", "").replace("'", ""))
-                        liste_possibilite.append(nomChampion.replace(" ", "").replace(".", "").replace("'", " "))
-                    if request in liste_possibilite:
-                        embed = discord.Embed()
-                        message_indice = await message.channel.fetch_message(int(res[6]))
-                        await message_indice.delete()
 
-                        message_possibilite = ""
-                        for possibilite in liste_possibilite:
-                            message_possibilite += "• "+possibilite+"\n"
-                        embed.color = discord.Colour.green()
-                        embed.set_author(name=message.author.name+" a gagné !")
-                        embed.set_thumbnail(url=message.author.display_avatar.url)
-                        embed.add_field(name="Réponse", value="**"+res[4]+"**", inline=True)
-                        embed.add_field(name="Réponses Alternatives", value=message_possibilite, inline=True)
-                        embed.set_image(url=get_champion_splash_by_name(res[4]))
-                        if not get_joueur_by_id(str(message.author.id)):
-                            insert_joueur_in_db(str(message.author.id), message.author.name, message.author.display_avatar.url)
-                        update_jeu_gagnant(res[0], str(message.author.id))
-                        await message.channel.send(embed=embed, view=RejouerBoutton(res[3], res[5]))
+                    message_possibilite = ""
+                    for possibilite in liste_possibilite:
+                        message_possibilite += "• "+possibilite+"\n"
+                    embed.color = discord.Colour.green()
+                    embed.set_author(name=message.author.name+" a gagné !")
+                    embed.set_thumbnail(url=message.author.display_avatar.url)
+                    embed.add_field(name="Réponse", value="**"+res[4]+"**", inline=True)
+                    embed.add_field(name="Réponses Alternatives", value=message_possibilite, inline=True)
+                    embed.set_image(url=D.get_champion_splash_by_name(res[4]))
+                    if not D.get_joueur_by_id(str(message.author.id)):
+                        D.insert_joueur_in_db(str(message.author.id), message.author.name, message.author.display_avatar.url)
+                    D.update_jeu_gagnant(res[0], str(message.author.id))
+                    await message.channel.send(embed=embed, view=Rejouer(D, res[3], res[5], assets))
             elif(res[3] == "item"):
                 request = message.content.lower().replace("œ","oe")
-                if request == "!stop":
+                liste_possibilite = []
+                nomItem = res[4].lower()
+                liste_possibilite.append(nomItem)
+                accent = has_accent(nomItem)
+                if accent:
+                    liste_possibilite.append(unidecode(nomItem))
+                if "-" in nomItem:
+                    liste_possibilite.append(nomItem.replace("-", " "))
+                    if accent:
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ")))
+                if "'" in nomItem:
+                    liste_possibilite.append(nomItem.replace("'", ""))
+                    liste_possibilite.append(nomItem.replace("'", " "))
+                    if accent:
+                        liste_possibilite.append(unidecode(nomItem.replace("'", "")))
+                        liste_possibilite.append(unidecode(nomItem.replace("'", " ")))
+                if "." in nomItem:
+                    liste_possibilite.append(nomItem.replace(".", ""))
+                    if accent:
+                        liste_possibilite.append(unidecode(nomItem.replace(".", "")))
+                if "." in nomItem and "'" in nomItem:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomItem.replace(".", "").replace("'", "")))
+                        liste_possibilite.append(unidecode(nomItem.replace(".", "").replace("'", " ")))
+                    liste_possibilite.append(nomItem.replace(".", "").replace("'", ""))
+                    liste_possibilite.append(nomItem.replace(".", "").replace("'", " "))
+                if "-" in nomItem and "." in nomItem:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace(".", "")))
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace(".", " ")))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace(".", ""))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace(".", " "))
+                if "-" in nomItem and "'" in nomItem:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", "")))
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", " ")))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace("'", ""))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace("'", " "))
+                if "-" in nomItem and "'" in nomItem and "." in nomItem:
+                    if accent:
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", "").replace(".", " ")))
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", " ").replace(".", " ")))
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", "").replace(".", "")))
+                        liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", " ").replace(".", "")))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace("'", "").replace(".", " "))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace("'", " ").replace(".", " "))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace("'", "").replace(".", ""))
+                    liste_possibilite.append(nomItem.replace("-", " ").replace("'", " ").replace(".", ""))
+                if request in liste_possibilite:
+                    embed = discord.Embed()
                     message_indice = await message.channel.fetch_message(int(res[6]))
                     await message_indice.delete()
-                    cursor.execute("DELETE FROM Jeu WHERE id = ?;", (res[0],))
-                    conn.commit()
-                    embed = discord.Embed()
-                    embed.set_author(name="Fin de partie")
-                    embed.set_image(url=get_item_image_by_name(res[4]))
-                    embed.description = "L'item était : "+res[4]
-                    await message.channel.send(embed=embed)
-                else:
-                    liste_possibilite = []
-                    nomItem = res[4].lower()
-                    liste_possibilite.append(nomItem)
-                    accent = has_accent(nomItem)
-                    if accent:
-                        liste_possibilite.append(unidecode(nomItem))
-                    if "-" in nomItem:
-                        liste_possibilite.append(nomItem.replace("-", " "))
-                        if accent:
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ")))
-                    if "'" in nomItem:
-                        liste_possibilite.append(nomItem.replace("'", ""))
-                        liste_possibilite.append(nomItem.replace("'", " "))
-                        if accent:
-                            liste_possibilite.append(unidecode(nomItem.replace("'", "")))
-                            liste_possibilite.append(unidecode(nomItem.replace("'", " ")))
-                    if "." in nomItem:
-                        liste_possibilite.append(nomItem.replace(".", ""))
-                        if accent:
-                            liste_possibilite.append(unidecode(nomItem.replace(".", "")))
-                    if "." in nomItem and "'" in nomItem:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomItem.replace(".", "").replace("'", "")))
-                            liste_possibilite.append(unidecode(nomItem.replace(".", "").replace("'", " ")))
-                        liste_possibilite.append(nomItem.replace(".", "").replace("'", ""))
-                        liste_possibilite.append(nomItem.replace(".", "").replace("'", " "))
-                    if "-" in nomItem and "." in nomItem:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace(".", "")))
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace(".", " ")))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace(".", ""))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace(".", " "))
-                    if "-" in nomItem and "'" in nomItem:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", "")))
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", " ")))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace("'", ""))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace("'", " "))
-                    if "-" in nomItem and "'" in nomItem and "." in nomItem:
-                        if accent:
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", "").replace(".", " ")))
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", " ").replace(".", " ")))
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", "").replace(".", "")))
-                            liste_possibilite.append(unidecode(nomItem.replace("-", " ").replace("'", " ").replace(".", "")))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace("'", "").replace(".", " "))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace("'", " ").replace(".", " "))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace("'", "").replace(".", ""))
-                        liste_possibilite.append(nomItem.replace("-", " ").replace("'", " ").replace(".", ""))
-                    if request in liste_possibilite:
-                        embed = discord.Embed()
-                        message_indice = await message.channel.fetch_message(int(res[6]))
-                        await message_indice.delete()
-                        message_possibilite = ""
-                        for possibilite in liste_possibilite:
-                            message_possibilite += "• "+possibilite+"\n"
-                        embed.color = discord.Colour.green()
-                        embed.set_author(name=message.author.name+" a gagné !")
-                        embed.set_thumbnail(url=message.author.display_avatar.url)
-                        embed.add_field(name="Réponse", value="**"+res[4]+"**", inline=True)
-                        embed.add_field(name="Réponses Alternatives", value=message_possibilite, inline=True)
-                        embed.set_image(url=get_item_image_by_name(res[4]))
-                        if not get_joueur_by_id(str(message.author.id)):
-                            insert_joueur_in_db(str(message.author.id), message.author.name, message.author.display_avatar.url)
-                        update_jeu_gagnant(res[0], str(message.author.id))
-                        await message.channel.send(embed=embed, view=RejouerBoutton(res[3], res[5]))
+                    message_possibilite = ""
+                    for possibilite in liste_possibilite:
+                        message_possibilite += "• "+possibilite+"\n"
+                    embed.color = discord.Colour.green()
+                    embed.set_author(name=message.author.name+" a gagné !")
+                    embed.set_thumbnail(url=message.author.display_avatar.url)
+                    embed.add_field(name="Réponse", value="**"+res[4]+"**", inline=True)
+                    embed.add_field(name="Réponses Alternatives", value=message_possibilite, inline=True)
+                    embed.set_image(url=D.get_item_image_by_name(res[4]))
+                    if not D.get_joueur_by_id(str(message.author.id)):
+                        D.insert_joueur_in_db(str(message.author.id), message.author.name, message.author.display_avatar.url)
+                    D.update_jeu_gagnant(res[0], str(message.author.id))
+                    await message.channel.send(embed=embed, view=Rejouer(D, res[3], res[5], assets))
 
 bot.run("MTE1OTA0NTA5MDUzMTA5MDUxNA.G_UKht.r5v82l70L_rKUrJ4iX0PXOeV5Dwh6ov0s648hI")
