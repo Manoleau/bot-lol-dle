@@ -2,12 +2,19 @@ import discord
 from discord.ui import Select, View, Button
 
 class Rejouer(View):
-    def __init__(self, DB, mode:str, difficulte:str, assets:dict):
+    def __init__(self, DB, mode:str, difficulte:str):
         super().__init__()
         self.DB = DB
         self.mode = mode
         self.difficulte = difficulte
-        self.assets = assets
+        self.assets = {
+                    "LoL" : {
+                        "name" : "League of Legends",
+                        "image-location": "assets/logo/League-of-Legends.png",
+                        "image" : "League-of-Legends.png"
+                    }
+                }
+
 
     @discord.ui.button(label="Rejouer", style=discord.ButtonStyle.green)
     async def rejouerBtn(self, interaction:discord.Interaction, button:Button):
@@ -25,8 +32,6 @@ class Rejouer(View):
             embed.color = discord.Colour(0x425b8a)
             logo_lol = discord.File(self.assets["LoL"]["image-location"], filename=self.assets["LoL"]["image"])
             embed.set_footer(text="Version : "+self.DB.versionLol, icon_url="attachment://"+self.assets["LoL"]["image"])
-            
-
             if self.difficulte == "facile":
                 if typeJeu == "champion":
                     champion = self.DB.get_random_champion()
@@ -43,7 +48,7 @@ class Rejouer(View):
                 if typeJeu == "champion":
                     champion = self.DB.get_random_champion()
                     mot = champion["name"]
-                    embed.add_field(name="Quel est le champion qui a ce titre ?", value="\u200b\n**"+champion["description"]+"**\n\u200b")
+                    embed.add_field(name="Quel est le champion qui a ce titre ?", value="\u200b\n**"+champion["title"]+"**\n\u200b")
                 elif typeJeu == "item":
                     item = self.DB.get_random_item()
                     mot = item["name"].replace("œ","oe")
@@ -54,5 +59,5 @@ class Rejouer(View):
             await self.DB.timer_indice(interaction=interaction, gameId=gameId, typeJeu=typeJeu, channelId=channelId, guildId=guildId, mot=mot)
             
         else:
-            embed.description = "Une partie est déjà en cours..."
+            embed.description = "Une partie est déjà en cours dans de channel..."
             await interaction.followup.send(embed=embed)

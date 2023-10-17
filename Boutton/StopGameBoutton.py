@@ -1,6 +1,6 @@
 import discord
 from discord.ui import Select, View, Button
-
+from Boutton.RejouerItemChampionBoutton import Rejouer
 class StopGame(View):
     def __init__(self, DB, id_jeu:int, message_id:int, typeJeu:str, mot:str):
         super().__init__()
@@ -14,6 +14,8 @@ class StopGame(View):
     async def stopBtn(self, interaction:discord.Interaction, button:Button):
         message_indice = await interaction.channel.fetch_message(self.message_id)
         await message_indice.delete()
+        self.DB.cursor.execute("SELECT difficulte FROM Jeu WHERE id = ?", (self.id_jeu,))
+        difficulte= self.DB.cursor.fetchone()[0]
         self.DB.cursor.execute("DELETE FROM Jeu WHERE id = ?;", (self.id_jeu,))
         self.DB.conn.commit()
         embed = discord.Embed()
@@ -24,4 +26,4 @@ class StopGame(View):
         elif self.typeJeu == "champion":
             embed.set_image(url=self.DB.get_champion_splash_by_name(self.mot))
             embed.description = "Le champion était : "+self.mot
-        await interaction.channel.send(embed=embed)
+        await interaction.channel.send(embed=embed, view=Rejouer(self.DB, self.typeJeu, difficulte))
