@@ -2,16 +2,17 @@ import discord
 from discord.ui import Select, View, Button
 
 class Rejouer(View):
-    def __init__(self, DB, mode:str, difficulte:str):
+    def __init__(self, bot, mode:str, difficulte:str):
         super().__init__()
-        self.DB = DB
+        self.bot = bot
+        self.DB = bot.D
         self.mode = mode
         self.difficulte = difficulte
         self.assets = {
                     "LoL" : {
-                        "name" : "League of Legends",
-                        "image-location": "assets/logo/League-of-Legends.png",
-                        "image" : "League-of-Legends.png"
+                        "name" : "LeagueLogo",
+                        "image-location": "assets/logo/LeagueLogo.png",
+                        "image" : "LeagueLogo.png"
                     }
                 }
 
@@ -31,7 +32,7 @@ class Rejouer(View):
         if res is None:
             embed.color = discord.Colour(0x425b8a)
             logo_lol = discord.File(self.assets["LoL"]["image-location"], filename=self.assets["LoL"]["image"])
-            embed.set_footer(text="Version : "+self.DB.versionLol, icon_url="attachment://"+self.assets["LoL"]["image"])
+            embed.set_footer(text="Version : "+self.bot.versionAc, icon_url="attachment://"+self.assets["LoL"]["image"])
             if self.difficulte == "facile":
                 if typeJeu == "champion":
                     champion = self.DB.get_random_champion()
