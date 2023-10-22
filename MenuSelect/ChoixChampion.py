@@ -4,9 +4,9 @@ import discord
 from discord.ui import View, Select, select
 assets = {
     "LoL" : {
-        "name" : "League of Legends",
-        "image-location": "assets/logo/League-of-Legends.png",
-        "image" : "League-of-Legends.png"
+        "name" : "LeagueLogo",
+        "image-location": "assets/logo/LeagueLogo.png",
+        "image" : "LeagueLogo.png"
     }
 }
 
@@ -20,7 +20,6 @@ class ChampSelect(Select):
     async def callback(self, interaction: discord.Interaction) -> Any:
             self.champion_name = self.values[0]
             champion_info = self.db.get_champion_by_name(self.champion_name)
-            print(champion_info)
 
             embed = discord.Embed()
             embed.set_footer(text="Version : "+self.db.versionLol, icon_url="attachment://"+assets["LoL"]["image"])
