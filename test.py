@@ -2,10 +2,182 @@ import sqlite3
 import requests
 import random
 from data_base import DB
-D = DB("13.19.1")
-
 conn = sqlite3.connect('DB/LeagueDle.db')
 cursor = conn.cursor()
+import time
+
+# cursor.execute("""
+# SELECT Skin.*
+# FROM JoueurSkins
+# JOIN Skin ON JoueurSkins.id_thing = Skin.id
+# WHERE JoueurSkins.type = 'skin'  -- Supposons que 'type' doit être égal à 'Skin'
+#     AND Skin.rarity = 'Utlime'
+#     AND JoueurSkins.joueurId = 334695006663344151;  -- Remplacez par l'ID du joueur souhaité
+# """)
+# print(cursor.fetchall())
+t = DB("qsdqs", None)
+print(t.get_all_skins_of(334695006663344151, 'Ultime'))
+
+
+# cursor.execute("""SELECT s.name, s.rarity
+# FROM Skin s
+# LEFT JOIN JoueurSkins js ON s.id = js.id_thing AND js.joueurId = 422208112225812511
+# WHERE js.id_thing IS NULL;""")
+
+# for f in cursor.fetchall():
+#     print(f"{f[0]} : {f[1]}")
+
+
+
+# cursor.execute("""
+# CREATE TABLE "CompteLol" (
+# 	"id"	VARCHAR(255) NOT NULL,
+# 	"accountId"	VARCHAR(255) NOT NULL,
+# 	"puuid"	VARCHAR(255) NOT NULL,
+# 	"name"	VARCHAR(255) NOT NULL,
+#     "profileIconUrl"	VARCHAR(255) NOT NULL,
+# 	"profileIconId"	INTEGER NOT NULL,
+# 	"summonerLevel"	INTEGER NOT NULL,
+# 	PRIMARY KEY("id")
+# )""")
+# conn.commit()
+
+
+# cursor.execute("""
+# CREATE TABLE LeagueLol (
+#     leagueId VARCHAR(36) PRIMARY KEY,
+#     queueType VARCHAR(20),
+#     tier VARCHAR(32),
+#     rank VARCHAR(5),
+#     summonerId VARCHAR(64),
+#     summonerName VARCHAR(255),
+#     leaguePoints INT,
+#     wins INT,
+#     losses INT
+# );
+# """)
+# conn.commit()
+
+# cursor.execute("SELECT DISTINCT Skin.name FROM Skin, JoueurSkins WHERE Skin.id NOT IN JoueurSkins.id_thing AND JoueurSkins.joueurId = 383497419460968448")
+
+# t = DB("adsqdq")
+
+# for i in range(5265):
+#     tirage = t.tirage_skin(334695006663344151)
+#     if tirage == None:
+#         print("FINI")
+#     else:
+#         if tirage[0] == 1:
+#             cursor.execute("INSERT INTO JoueurSkins VALUES(334695006663344151, ?, ?, 1)", (tirage[2]["id"], tirage[1]))
+#         else:
+#             cursor.execute("UPDATE JoueurSkins SET quantite = ? WHERE joueurId = 334695006663344151 AND id_thing = ?;",(tirage[0], tirage[2]["id"]))
+#         conn.commit()
+#     print(i)
+
+
+# cursor.execute("DELETE FROM JoueurSkins WHERE joueurId = 334695006663344151")
+# conn.commit()
+
+# Normal = 0
+# Epique = 0
+# Hextech = 0
+# Legendaire = 0
+# Ultime = 0
+# cursor.execute("SELECT COUNT(*) FROM Skin WHERE rarity = 'Ultime'")
+# Ultime += cursor.fetchone()[0]
+# cursor.execute("SELECT id, hasChroma FROM Skin WHERE rarity = 'Légendaire'")
+# for skin in cursor.fetchall():
+#     Legendaire += 1
+
+# cursor.execute("SELECT id, hasChroma FROM Skin WHERE rarity = 'Hextech'")
+# for skin in cursor.fetchall():
+#     Hextech += 1
+
+# cursor.execute("SELECT id, hasChroma FROM Skin WHERE rarity = 'Epique'")
+# for skin in cursor.fetchall():
+#     Epique += 1
+        
+# cursor.execute("SELECT id, hasChroma FROM Skin WHERE rarity = 'Normal'")
+# for skin in cursor.fetchall():
+#     Normal += 1
+
+# totaux = Normal+Epique+Hextech+Legendaire+Ultime
+
+# tmp = round(Ultime/totaux, 4)
+# cursor.execute("UPDATE RaritySkinsChromas SET probabilite = ? WHERE name = 'Ultime'",(tmp,))
+# tmp += round(Legendaire/totaux, 4)
+# cursor.execute("UPDATE RaritySkinsChromas SET probabilite = ? WHERE name = 'Légendaire'",(tmp,))
+# tmp += round(Hextech/totaux, 4)
+# cursor.execute("UPDATE RaritySkinsChromas SET probabilite = ? WHERE name = 'Hextech'",(tmp,))
+# tmp += round(Epique/totaux, 4)
+# cursor.execute("UPDATE RaritySkinsChromas SET probabilite = ? WHERE name = 'Epique'", (tmp,))
+# tmp += round(Normal/totaux, 4)
+# cursor.execute("UPDATE RaritySkinsChromas SET probabilite = ? WHERE name = 'Normal'", (tmp,))
+# conn.commit()
+
+
+
+
+# cursor.execute("DELETE FROM JoueurSkins")
+# conn.commit()
+
+
+# print(cursor.fetchone())
+# cursor.execute("UPDATE Skin SET rarity = 'Normal' WHERE rarity = 'NoRarity';")
+# cursor.execute("UPDATE Skin SET rarity = 'Normal' WHERE rarity = 'Default';")
+# cursor.execute("UPDATE Skin SET rarity = 'Normal' WHERE rarity = 'Rare';")
+# cursor.execute("UPDATE Skin SET rarity = 'Epique' WHERE rarity = 'Epic';")
+# cursor.execute("UPDATE Skin SET rarity = 'Hextech' WHERE rarity = 'Mythic';")
+# cursor.execute("UPDATE Skin SET rarity = 'Légendaire' WHERE rarity = 'Legendary';")
+
+
+# image = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/ LE RESTE"
+
+# cursor.execute("SELECT id, name FROM Champions ORDER BY name ASC;")
+# idchamp = cursor.fetchall()
+# longueur = len(idchamp)
+# for id in idchamp:
+#     print(f"il reste {str(longueur)} champions")
+#     champ = requests.get(f"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/fr_fr/v1/champions/{id[0]}.json").json()
+#     championId = champ["id"]
+#     for skin in champ["skins"]:
+#         id = skin["id"]
+        
+#         name = skin["name"]
+#         isBase = skin["isBase"]
+#         if isBase:
+#             rarity = "Default"
+#         else:
+#             rarityliste = skin["rarity"].split("k")
+#             rarity = ""
+#             for i in range(1, len(rarityliste)):
+#                 rarity += f"{rarityliste[i]}"
+
+
+#         splashPath = f"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/{skin['splashPath'].replace('/lol-game-data/assets/', '')}"
+#         tilePath = f"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/{skin['tilePath'].replace('/lol-game-data/assets/', '')}"
+#         loadScreenPath = f"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/{skin['loadScreenPath'].replace('/lol-game-data/assets/', '')}"
+        
+#         if "chromas" in skin:
+#             hasChroma = True
+#             # cursor.execute("INSERT INTO Skin VALUES(?,?,?,?,?,?,?,?,?)", (id, championId, name, isBase, rarity, splashPath, tilePath, loadScreenPath, hasChroma))
+#             # conn.commit()
+#             for chroma in skin["chromas"]:
+#                 idChroma = chroma["id"]
+#                 name = chroma["name"]
+                
+#                 chromaPath = f"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/{chroma['chromaPath'].replace('/lol-game-data/assets/', '')}"
+#                 if len(chroma["colors"]) > 0:
+#                     color = chroma["colors"][0]
+#                 else:
+#                     color = None
+#                 cursor.execute("INSERT INTO Chroma VALUES(?,?,?,?,?)", (idChroma, name, chromaPath, color, id))
+#                 conn.commit()
+#         else:
+#             hasChroma = False
+#             # cursor.execute("INSERT INTO Skin VALUES(?,?,?,?,?,?,?,?,?)", (id, championId, name, isBase, rarity, splashPath, tilePath, loadScreenPath, hasChroma))
+#             # conn.commit()
+#     longueur -= 1
 
 
 # cursor.execute("SELECT * FROM Regions;")
