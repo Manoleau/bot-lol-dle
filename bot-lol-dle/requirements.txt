@@ -1,0 +1,9 @@
+discord.py~=2.4.0
+requests
+datetime~=5.5
+python-dotenv~=1.0.1
+mysql~=0.0.3
+mysql-connector-python~=9.1.0
+pytz~=2024.2
+audioop-lts
+SQLAlchemy~=2.0.36
