@@ -1,27 +1,21 @@
 import datetime
 from dotenv import load_dotenv
 import os
-from sqlalchemy.sql.ddl import CreateTable
 from models import MySQLManager, SQLiteManager, DBManager
-import models.orm as orm
-import inspect
 load_dotenv()
+import subprocess
+
 
 
 
 def setup_project(bdd:DBManager.DBManager):
     bdd.connect()
     debut = datetime.datetime.now()
-    entities = inspect.getmembers(orm, inspect.isclass)
-    for class_name, class_obj in entities:
-        if "Model" in class_obj.__name__:
-            bdd.execute_query(str(CreateTable(class_obj.__table__).compile()).replace('TABLE', 'TABLE IF NOT EXISTS'))
-
-    
+    subprocess.run(["alembic", "upgrade", "head"])
 
     fin = datetime.datetime.now()
 
-    print(f"Temps execution du setup : {(fin-debut).microseconds} microseconds")
+    print(f"Temps execution du setup : {(fin-debut).seconds} secondes")
     bdd.disconnect()
 
 
